@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 import { SelectGroup, SelectValue } from "@radix-ui/react-select";
+import { useState } from "react";
 import { Button } from "./ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 
 type Props = {};
 

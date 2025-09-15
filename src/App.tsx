@@ -1,18 +1,15 @@
-import { useState } from 'react'
-import { Button } from './components/ui/button'
-import Header from './components/header'
+import Header from "./components/header";
+import Note from "./components/Note";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
       <Header />
-      <Button onClick={() => setCount((count) => count + 1)}>
-        count is {count}
-      </Button>
+      <main className="p-2 h-[calc(100vh-56px)]">
+        <Note />
+      </main>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
