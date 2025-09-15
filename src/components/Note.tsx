@@ -1,11 +1,24 @@
 import type { NoteData } from "@/App";
 import clsx from "clsx";
-import { LucideX } from "lucide-react";
+import { LucidePalette, LucideX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Rnd } from "react-rnd";
 import { Button } from "./ui/button";
 import { Card, CardAction, CardContent, CardHeader } from "./ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Textarea } from "./ui/textarea";
+
+const colors = {
+  red: "bg-red-100 border-red-200",
+  orange: "bg-orange-100 border-orange-200",
+  yellow: "bg-yellow-100 border-yellow-200",
+  green: "bg-green-100 border-green-200",
+  teal: "bg-teal-100 border-teal-200",
+  emerald: "bg-emerald-100 border-emerald-200",
+  blue: "bg-blue-100 border-blue-200",
+  purple: "bg-purple-100 border-purple-200",
+  pink: "bg-pink-100 border-pink-200",
+};
 
 type Props = {
   noteData: NoteData;
@@ -14,6 +27,8 @@ type Props = {
 
 const Note = (props: Props) => {
   const [text, setText] = useState(props.noteData.text);
+  const [color, setColor] = useState(props.noteData.color);
+  const [isColorPaletteOpen, setIsColorPaletteOpen] = useState(false);
   const [isEdited, setIsEdited] = useState(false);
 
   const saveNote = () => {
@@ -23,6 +38,11 @@ const Note = (props: Props) => {
   const updateText = (newText: string) => {
     setIsEdited(true);
     setText(newText);
+  };
+
+  const updateColor = (newColor: string) => {
+    setIsColorPaletteOpen(false);
+    setColor(newColor);
   };
 
   useEffect(() => {
@@ -49,16 +69,42 @@ const Note = (props: Props) => {
       dragHandleClassName="drag-handle"
     >
       <Card
-        className={clsx("pb-0 pt-2 gap-0 h-full w-full select-none", {
-          "bg-yellow-100": props.noteData.color === "yellow",
-          "bg-green-100": props.noteData.color === "green",
-          "bg-blue-100": props.noteData.color === "blue",
-          "bg-pink-100": props.noteData.color === "pink",
-          "bg-purple-100": props.noteData.color === "purple",
-        })}
+        className={clsx(
+          "pb-0 pt-2 gap-0 h-full w-full select-none",
+          colors[color as keyof typeof colors]
+        )}
       >
-        <CardHeader className="[.border-b]:pb-2 border-b px-2 drag-handle cursor-move">
-          <CardAction>
+        <CardHeader className="[.border-b]:pb-2 border-b px-2 drag-handle cursor-move border-inherit">
+          <CardAction className="flex items-center justify-end gap-2">
+            <Popover
+              open={isColorPaletteOpen}
+              onOpenChange={setIsColorPaletteOpen}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  className="cursor-pointer p-0 w-6 h-6 rounded-full flex items-center justify-center"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsColorPaletteOpen(true)}
+                >
+                  <LucidePalette />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 grid grid-cols-3 rounded-none border-0">
+                {Object.keys(colors).map((col) => (
+                  <Button
+                    key={col}
+                    className={clsx(
+                      "cursor-pointer p-0 w-8 h-8 rounded-none",
+                      colors[col as keyof typeof colors]
+                    )}
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => updateColor(col)}
+                  ></Button>
+                ))}
+              </PopoverContent>
+            </Popover>
             <Button
               onClick={() => props.deleteNote(props.noteData.id)}
               className="cursor-pointer p-0 w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white"

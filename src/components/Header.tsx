@@ -1,7 +1,13 @@
-import { SelectGroup, SelectValue } from "@radix-ui/react-select";
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 type Props = {
   newNote: () => void;
