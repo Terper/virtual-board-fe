@@ -3,7 +3,9 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 
-type Props = {};
+type Props = {
+  newNote: () => void;
+};
 
 const boards = [
   { id: 1, name: "Board 1" },
@@ -13,10 +15,6 @@ const boards = [
 
 const Header = (props: Props) => {
   const [selectedBoard, setSelectedBoard] = useState(boards[0]);
-
-  const generateNewNote = () => {
-    console.log("New note generated");
-  };
 
   return (
     <header className="flex items-center justify-between p-2 border-b gap-2">
@@ -42,7 +40,7 @@ const Header = (props: Props) => {
           </SelectGroup>
         </SelectContent>
       </Select>
-      <Button onClick={() => generateNewNote()}>New note</Button>
+      <Button onClick={props.newNote}>New note</Button>
     </header>
   );
 };
