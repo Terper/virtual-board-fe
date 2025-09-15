@@ -36,8 +36,8 @@ function App() {
     <>
       <Header newNote={newNote} />
       <main className="p-2 h-[calc(100vh-56px)]">
-        {notes.map((note, index) => (
-          <Note key={index} noteData={note} deleteNote={deleteNote} />
+        {notes.map((note) => (
+          <Note key={note.id} noteData={note} deleteNote={deleteNote} />
         ))}
       </main>
     </>
