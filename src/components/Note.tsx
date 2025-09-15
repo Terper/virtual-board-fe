@@ -9,15 +9,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Textarea } from "./ui/textarea";
 
 const colors = {
-  red: "bg-red-100 border-red-200",
-  orange: "bg-orange-100 border-orange-200",
-  yellow: "bg-yellow-100 border-yellow-200",
-  green: "bg-green-100 border-green-200",
-  teal: "bg-teal-100 border-teal-200",
-  emerald: "bg-emerald-100 border-emerald-200",
-  blue: "bg-blue-100 border-blue-200",
-  purple: "bg-purple-100 border-purple-200",
-  pink: "bg-pink-100 border-pink-200",
+  red: "bg-red-100 border-red-200 hover:bg-red-100",
+  orange: "bg-orange-100 border-orange-200 hover:bg-orange-100",
+  yellow: "bg-yellow-100 border-yellow-200 hover:bg-yellow-100",
+  green: "bg-green-100 border-green-200 hover:bg-green-100",
+  teal: "bg-teal-100 border-teal-200 hover:bg-teal-100",
+  emerald: "bg-emerald-100 border-emerald-200 hover:bg-emerald-100",
+  blue: "bg-blue-100 border-blue-200 hover:bg-blue-100",
+  purple: "bg-purple-100 border-purple-200 hover:bg-purple-100",
+  pink: "bg-pink-100 border-pink-200 hover:bg-pink-100",
 };
 
 type Props = {
@@ -46,9 +46,17 @@ const Note = (props: Props) => {
     console.log("Updated color:", newColor);
   };
 
+  const savePosition = (
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ) => {
+    console.log("Saved position:", { x, y, width, height });
+  };
+
   useEffect(() => {
     if (!isEdited) return;
-
     const timeout = setTimeout(() => {
       saveNote();
       setIsEdited(false);
@@ -58,6 +66,17 @@ const Note = (props: Props) => {
 
   return (
     <Rnd
+      onResizeStop={(_, __, ref, ____, position) => {
+        savePosition(position.x, position.y, ref.offsetWidth, ref.offsetHeight);
+      }}
+      onDragStop={(_, position) => {
+        savePosition(
+          position.x,
+          position.y,
+          props.noteData.width,
+          props.noteData.height
+        );
+      }}
       bounds={"parent"}
       default={{
         x: props.noteData.x,
@@ -83,7 +102,7 @@ const Note = (props: Props) => {
             >
               <PopoverTrigger asChild>
                 <Button
-                  className="cursor-pointer p-0 w-6 h-6 rounded-full flex items-center justify-center"
+                  className="cursor-pointer p-0 w-6 h-6 rounded-full flex items-center justify-center hover:bg-transparent"
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsColorPaletteOpen(true)}
