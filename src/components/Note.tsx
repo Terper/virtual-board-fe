@@ -43,6 +43,7 @@ const Note = (props: Props) => {
   const updateColor = (newColor: string) => {
     setIsColorPaletteOpen(false);
     setColor(newColor);
+    console.log("Updated color:", newColor);
   };
 
   useEffect(() => {

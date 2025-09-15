@@ -26,9 +26,11 @@ function App() {
       color: "yellow",
     };
     setNotes((prevNotes) => [...prevNotes, newNote]);
+    console.log("Created new note:", newNote);
   };
 
   const deleteNote = (id: string) => {
+    console.log("Deleted note:", id);
     setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
   };
 
