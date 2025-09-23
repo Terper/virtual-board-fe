@@ -35,21 +35,31 @@ const Header = (props: Props) => {
           }
         }}
       >
-        <SelectTrigger className="flex-1">
+        <SelectTrigger className="flex-1 cursor-pointer">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             {boards.map((board) => (
-              <SelectItem key={board.id} value={board.name}>
+              <SelectItem
+                key={board.id}
+                value={board.name}
+                className="cursor-pointer"
+              >
                 {board.name}
               </SelectItem>
             ))}
           </SelectGroup>
         </SelectContent>
       </Select>
-      <Button onClick={props.newNote}>New note</Button>
-      <Button variant="destructive" onClick={removeToken}>
+      <Button onClick={props.newNote} className="cursor-pointer">
+        New note
+      </Button>
+      <Button
+        variant="destructive"
+        onClick={removeToken}
+        className="cursor-pointer"
+      >
         Logout
       </Button>
     </header>

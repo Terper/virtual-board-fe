@@ -18,7 +18,7 @@ const formSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-const Login = () => {
+const LoginForm = () => {
   const { addToken } = useAuth();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -35,7 +35,7 @@ const Login = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="username"
@@ -62,10 +62,12 @@ const Login = () => {
             </FormItem>
           )}
         />
-        <Button type="submit">Login</Button>
+        <Button type="submit" className="w-full cursor-pointer">
+          Login
+        </Button>
       </form>
     </Form>
   );
 };
 
-export default Login;
+export default LoginForm;
