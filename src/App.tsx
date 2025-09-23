@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useAuth } from "./AuthProvider";
 import Header from "./components/Header";
+import Login from "./components/Login";
 import Note from "./components/Note";
 
 export type NoteData = {
@@ -14,6 +16,11 @@ export type NoteData = {
 
 function App() {
   const [notes, setNotes] = useState<NoteData[]>([]);
+  const { token } = useAuth();
+
+  if (!token) {
+    return <Login />;
+  }
 
   const newNote = () => {
     const newNote: NoteData = {

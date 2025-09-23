@@ -1,3 +1,4 @@
+import { useAuth } from "@/AuthProvider";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import {
@@ -21,6 +22,7 @@ const boards = [
 
 const Header = (props: Props) => {
   const [selectedBoard, setSelectedBoard] = useState(boards[0]);
+  const { removeToken } = useAuth();
 
   return (
     <header className="flex items-center justify-between p-2 border-b gap-2">
@@ -47,6 +49,9 @@ const Header = (props: Props) => {
         </SelectContent>
       </Select>
       <Button onClick={props.newNote}>New note</Button>
+      <Button variant="destructive" onClick={removeToken}>
+        Logout
+      </Button>
     </header>
   );
 };
