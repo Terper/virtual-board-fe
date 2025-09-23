@@ -4,9 +4,7 @@ import RegisterForm from "./RegisterForm";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 
-type Props = {};
-
-const Auth = (props: Props) => {
+const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
