@@ -15,7 +15,9 @@ const Auth = () => {
         <CardHeader>
           <h1 className="text-lg">{isLogin ? "Login" : "Register"}</h1>
         </CardHeader>
-        <CardContent>{isLogin ? <LoginForm /> : <RegisterForm />}</CardContent>
+        <CardContent>
+          {isLogin ? <LoginForm /> : <RegisterForm setIsLogin={setIsLogin} />}
+        </CardContent>
         <CardFooter>
           <Button
             onClick={toggleAuthMode}
