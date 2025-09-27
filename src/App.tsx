@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider";
 import Auth from "./components/Auth";
 import Header from "./components/Header";
@@ -19,9 +19,9 @@ function App() {
   const [selectedBoardId, setSelectedBoardId] = useState<string>("");
   const { token } = useAuth();
 
-  if (!token) {
-    return <Auth />;
-  }
+  useEffect(() => {
+    setSelectedBoardId("");
+  }, [token]);
 
   const notes = useQuery<NoteData[]>({
     queryKey: ["notes", selectedBoardId],
@@ -129,6 +129,10 @@ function App() {
   const deleteNote = (id: string) => {
     deleteNoteMutation.mutate(id);
   };
+
+  if (!token) {
+    return <Auth />;
+  }
 
   return (
     <>
