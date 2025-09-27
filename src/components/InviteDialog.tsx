@@ -23,7 +23,7 @@ import {
 import { Input } from "./ui/input";
 
 type Props = {
-  boardId: number;
+  boardId: string;
   boardTitle: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;

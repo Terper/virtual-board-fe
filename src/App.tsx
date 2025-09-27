@@ -16,6 +16,7 @@ export type NoteData = {
 
 function App() {
   const [notes, setNotes] = useState<NoteData[]>([]);
+  const [selectedBoardId, setSelectedBoardId] = useState<string>("");
   const { token } = useAuth();
 
   if (!token) {
@@ -41,9 +42,11 @@ function App() {
     setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
   };
 
+  console.log("Selected Board ID:", selectedBoardId);
+
   return (
     <>
-      <Header newNote={newNote} />
+      <Header newNote={newNote} setSelectedBoardId={setSelectedBoardId} />
       <main className="p-2 h-[calc(100vh-56px)]">
         {notes.map((note) => (
           <Note key={note.id} noteData={note} deleteNote={deleteNote} />

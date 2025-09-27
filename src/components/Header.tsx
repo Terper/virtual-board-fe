@@ -14,7 +14,7 @@ import {
 } from "./ui/select";
 
 type Board = {
-  _id: number;
+  _id: string;
   title: string;
 };
 
@@ -22,6 +22,7 @@ type BoardsResponse = { boards: Board[] };
 
 type Props = {
   newNote: () => void;
+  setSelectedBoardId: (boardId: string) => void;
 };
 
 const Header = (props: Props) => {
@@ -52,33 +53,32 @@ const Header = (props: Props) => {
   });
 
   const boards = query.data.boards;
-  const safeBoards = Array.isArray(boards) ? boards : [];
 
   // Select the first board after fetching
   useEffect(() => {
     if (boards.length > 0 && !selectedBoard) {
       setSelectedBoard(boards[0]);
+      props.setSelectedBoardId(boards[0]._id);
     }
   }, [boards, selectedBoard]);
-
-  console.log(query.data);
 
   return (
     <header className="flex items-center justify-between p-2 border-b gap-2">
       <div className="flex-1 flex gap-2 items-center">
         <Select
           value={
-            safeBoards.length === 0 ? "no-boards" : (selectedBoard?.title ?? "")
+            boards.length === 0 ? "no-boards" : (selectedBoard?.title ?? "")
           }
           onValueChange={(value) => {
             if (value === "create-board") {
               setShowCreateDialog(true);
               return;
             }
-            if (safeBoards.length === 0) return;
-            const board = safeBoards.find((b) => b.title === value);
+            if (boards.length === 0) return;
+            const board = boards.find((b) => b.title === value);
             if (board) {
               setSelectedBoard(board);
+              props.setSelectedBoardId(board._id);
             }
           }}
         >
@@ -87,7 +87,7 @@ const Header = (props: Props) => {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {safeBoards.length === 0 && (
+              {boards.length === 0 && (
                 <SelectItem
                   value="no-boards"
                   disabled
@@ -96,7 +96,7 @@ const Header = (props: Props) => {
                   No boards available
                 </SelectItem>
               )}
-              {safeBoards.map((board) => (
+              {boards.map((board) => (
                 <SelectItem
                   key={board._id}
                   value={board.title}
@@ -120,7 +120,7 @@ const Header = (props: Props) => {
         onOpenChange={setShowCreateDialog}
       />
       <JoinBoardDialog
-        boardId={selectedBoard?._id ?? 0}
+        boardId={selectedBoard?._id ?? ""}
         boardTitle={selectedBoard?.title ?? ""}
         open={showInviteDialog}
         onOpenChange={setShowInviteDialog}
