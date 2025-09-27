@@ -74,11 +74,8 @@ const InviteDialog = (props: Props) => {
           <DialogTitle>Invite user to {props.boardTitle}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          {" "}
           {mutation.isError && (
-            <div className="text-red-600 ">
-              Could not invite user
-            </div>
+            <div className="text-red-600 ">Could not invite user</div>
           )}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
