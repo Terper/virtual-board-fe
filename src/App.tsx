@@ -1,3 +1,4 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "./AuthProvider";
 import Auth from "./components/Auth";
@@ -5,7 +6,7 @@ import Header from "./components/Header";
 import Note from "./components/Note";
 
 export type NoteData = {
-  id: string;
+  _id: string;
   text: string;
   x: number;
   y: number;
@@ -15,7 +16,6 @@ export type NoteData = {
 };
 
 function App() {
-  const [notes, setNotes] = useState<NoteData[]>([]);
   const [selectedBoardId, setSelectedBoardId] = useState<string>("");
   const { token } = useAuth();
 
@@ -23,33 +23,128 @@ function App() {
     return <Auth />;
   }
 
+  const notes = useQuery<NoteData[]>({
+    queryKey: ["notes", selectedBoardId],
+    refetchInterval: 1000,
+    queryFn: async () => {
+      const response = await fetch(
+        `${import.meta.env.VITE_BOARD_API_URL}/boards/${selectedBoardId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(await response.json());
+      }
+      const data = await response.json();
+      return data.board.notes;
+    },
+    initialData: [],
+    staleTime: 0,
+    enabled: !!selectedBoardId,
+  });
+
+  const newNoteMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(
+        `${import.meta.env.VITE_BOARD_API_URL}/boards/${selectedBoardId}/notes`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            text: "New Note",
+            x: 0,
+            y: 0,
+            width: 200,
+            height: 200,
+            color: "yellow",
+          }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error();
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      notes.refetch();
+    },
+  });
+
+  const deleteNoteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(
+        `${import.meta.env.VITE_BOARD_API_URL}/boards/${selectedBoardId}/notes/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error();
+      }
+      return response.json();
+    },
+    onSettled: () => {
+      notes.refetch();
+    },
+  });
+
+  const patchNoteMutation = useMutation({
+    mutationFn: async (note: Partial<NoteData>) => {
+      const modifiedNote = { ...note };
+      delete modifiedNote._id;
+      console.log("Patching note:", note);
+      const response = await fetch(
+        `${import.meta.env.VITE_BOARD_API_URL}/boards/${selectedBoardId}/notes/${note._id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(note),
+        }
+      );
+      if (!response.ok) {
+        throw new Error();
+      }
+      return response.json();
+    },
+    onSettled: () => {
+      notes.refetch();
+    },
+  });
+
   const newNote = () => {
-    const newNote: NoteData = {
-      id: crypto.randomUUID(),
-      text: "",
-      x: 0,
-      y: 0,
-      width: 300,
-      height: 150,
-      color: "yellow",
-    };
-    setNotes((prevNotes) => [...prevNotes, newNote]);
-    console.log("Created new note:", newNote);
+    newNoteMutation.mutate();
   };
 
   const deleteNote = (id: string) => {
-    console.log("Deleted note:", id);
-    setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
+    deleteNoteMutation.mutate(id);
   };
 
   console.log("Selected Board ID:", selectedBoardId);
+  console.log("Notes:", notes.data);
 
   return (
     <>
       <Header newNote={newNote} setSelectedBoardId={setSelectedBoardId} />
       <main className="p-2 h-[calc(100vh-56px)]">
-        {notes.map((note) => (
-          <Note key={note.id} noteData={note} deleteNote={deleteNote} />
+        {notes.data.map((note) => (
+          <Note
+            key={note._id}
+            noteData={note}
+            deleteNote={deleteNote}
+            patchNoteMutation={patchNoteMutation}
+          />
         ))}
       </main>
     </>

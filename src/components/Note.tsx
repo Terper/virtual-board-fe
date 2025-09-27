@@ -1,4 +1,5 @@
 import type { NoteData } from "@/App";
+import type { UseMutationResult } from "@tanstack/react-query";
 import clsx from "clsx";
 import { LucidePalette, LucideX } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -23,16 +24,19 @@ const colors = {
 type Props = {
   noteData: NoteData;
   deleteNote: (id: string) => void;
+  patchNoteMutation: UseMutationResult<any, Error, Partial<NoteData>, unknown>;
 };
 
 const Note = (props: Props) => {
   const [text, setText] = useState(props.noteData.text);
-  const [color, setColor] = useState(props.noteData.color);
   const [isColorPaletteOpen, setIsColorPaletteOpen] = useState(false);
   const [isEdited, setIsEdited] = useState(false);
 
   const saveNote = () => {
-    console.log("Saved note:", text);
+    props.patchNoteMutation.mutate({
+      _id: props.noteData._id,
+      text,
+    });
   };
 
   const updateText = (newText: string) => {
@@ -42,8 +46,10 @@ const Note = (props: Props) => {
 
   const updateColor = (newColor: string) => {
     setIsColorPaletteOpen(false);
-    setColor(newColor);
-    console.log("Updated color:", newColor);
+    props.patchNoteMutation.mutate({
+      _id: props.noteData._id,
+      color: newColor,
+    });
   };
 
   const savePosition = (
@@ -52,7 +58,13 @@ const Note = (props: Props) => {
     width: number,
     height: number
   ) => {
-    console.log("Saved position:", { x, y, width, height });
+    props.patchNoteMutation.mutate({
+      _id: props.noteData._id,
+      x,
+      y,
+      width,
+      height,
+    });
   };
 
   useEffect(() => {
@@ -64,26 +76,63 @@ const Note = (props: Props) => {
     return () => clearTimeout(timeout);
   }, [text, isEdited]);
 
+  const [position, setPosition] = useState({
+    x: props.noteData.x,
+    y: props.noteData.y,
+    width: props.noteData.width,
+    height: props.noteData.height,
+  });
+
+  useEffect(() => {
+    setPosition({
+      x: props.noteData.x,
+      y: props.noteData.y,
+      width: props.noteData.width,
+      height: props.noteData.height,
+    });
+    if (!isEdited) {
+      setText(props.noteData.text);
+    }
+  }, [
+    props.noteData.x,
+    props.noteData.y,
+    props.noteData.width,
+    props.noteData.height,
+    props.noteData.text,
+  ]);
+
   return (
     <Rnd
-      onResizeStop={(_, __, ref, ____, position) => {
-        savePosition(position.x, position.y, ref.offsetWidth, ref.offsetHeight);
-      }}
-      onDragStop={(_, position) => {
+      position={{ x: position.x, y: position.y }}
+      size={{ width: position.width, height: position.height }}
+      onResizeStop={(_, __, ref, ____, newPosition) => {
+        setPosition({
+          x: newPosition.x,
+          y: newPosition.y,
+          width: ref.offsetWidth,
+          height: ref.offsetHeight,
+        });
         savePosition(
-          position.x,
-          position.y,
-          props.noteData.width,
-          props.noteData.height
+          newPosition.x,
+          newPosition.y,
+          ref.offsetWidth,
+          ref.offsetHeight
+        );
+      }}
+      onDragStop={(_, newPosition) => {
+        setPosition((prev) => ({
+          ...prev,
+          x: newPosition.x,
+          y: newPosition.y,
+        }));
+        savePosition(
+          newPosition.x,
+          newPosition.y,
+          position.width,
+          position.height
         );
       }}
       bounds={"parent"}
-      default={{
-        x: props.noteData.x,
-        y: props.noteData.y,
-        width: props.noteData.width,
-        height: props.noteData.height,
-      }}
       minWidth={200}
       minHeight={100}
       dragHandleClassName="drag-handle"
@@ -91,7 +140,7 @@ const Note = (props: Props) => {
       <Card
         className={clsx(
           "pb-0 pt-2 gap-0 h-full w-full select-none",
-          colors[color as keyof typeof colors]
+          colors[props.noteData.color as keyof typeof colors]
         )}
       >
         <CardHeader className="[.border-b]:pb-2 border-b px-2 drag-handle cursor-move border-inherit">
@@ -126,7 +175,7 @@ const Note = (props: Props) => {
               </PopoverContent>
             </Popover>
             <Button
-              onClick={() => props.deleteNote(props.noteData.id)}
+              onClick={() => props.deleteNote(props.noteData._id)}
               className="cursor-pointer p-0 w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white"
               variant="ghost"
               size="icon"
