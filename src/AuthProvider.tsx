@@ -23,7 +23,6 @@ const AuthProvider = (props: Props) => {
 
   const addToken = (newToken: string) => {
     setToken(newToken);
-    console.log("Token added:", newToken);
     localStorage.setItem("token", newToken);
   };
 

@@ -101,7 +101,6 @@ function App() {
     mutationFn: async (note: Partial<NoteData>) => {
       const modifiedNote = { ...note };
       delete modifiedNote._id;
-      console.log("Patching note:", note);
       const response = await fetch(
         `${import.meta.env.VITE_BOARD_API_URL}/boards/${selectedBoardId}/notes/${note._id}`,
         {
@@ -130,9 +129,6 @@ function App() {
   const deleteNote = (id: string) => {
     deleteNoteMutation.mutate(id);
   };
-
-  console.log("Selected Board ID:", selectedBoardId);
-  console.log("Notes:", notes.data);
 
   return (
     <>

@@ -61,12 +61,7 @@ const RegisterForm = (props: Props) => {
   });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log("Register data:", data);
-    mutation.mutate(data, {
-      onSuccess: (data) => {
-        console.log("Registration successful:", data);
-      },
-    });
+    mutation.mutate(data);
   };
 
   return (
