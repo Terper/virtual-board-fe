@@ -1,5 +1,9 @@
 import { useAuth } from "@/AuthProvider";
-import { useQuery } from "@tanstack/react-query";
+import {
+  useQuery,
+  useQueryClient,
+  type UseMutationResult,
+} from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import CreateBoardDialog from "./CreateBoardDialog";
 import JoinBoardDialog from "./InviteDialog";
@@ -18,23 +22,23 @@ type Board = {
   title: string;
 };
 
-type BoardsResponse = { boards: Board[] };
-
 type Props = {
   newNote: () => void;
   setSelectedBoardId: (boardId: string) => void;
+  selectedBoardId: string;
+  deleteBoard: UseMutationResult<any, Error, string, unknown>;
 };
 
 const Header = (props: Props) => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
-  const { removeToken } = useAuth();
+  const { token, removeToken } = useAuth();
 
-  const { token } = useAuth();
+  const queryClient = useQueryClient();
 
-  const query = useQuery<BoardsResponse>({
+  const boards = useQuery<Board[]>({
     queryKey: ["boards"],
+    refetchInterval: 1000,
     queryFn: async () => {
       const response = await fetch(
         `${import.meta.env.VITE_BOARD_API_URL}/boards`,
@@ -47,39 +51,49 @@ const Header = (props: Props) => {
       if (!response.ok) {
         throw new Error(await response.json());
       }
-      return response.json();
+      const data = await response.json();
+      return data.boards;
     },
-    initialData: { boards: [] },
+    initialData: [],
   });
-
-  const boards = query.data.boards;
 
   // Select the first board after fetching
   useEffect(() => {
-    if (boards.length > 0 && !selectedBoard) {
-      setSelectedBoard(boards[0]);
-      props.setSelectedBoardId(boards[0]._id);
+    if (boards.data.length > 0 && !props.selectedBoardId) {
+      props.setSelectedBoardId(boards.data[0]._id);
     }
-  }, [boards, selectedBoard]);
+  }, [boards, props.selectedBoardId]);
+
+  const deleteBoard = () => {
+    props.deleteBoard.mutate(props.selectedBoardId);
+    props.setSelectedBoardId("");
+  };
+
+  const getBoardById = (id: string) => {
+    return boards.data.find((board) => board._id === id) || null;
+  };
+
+  const handleLogout = () => {
+    removeToken();
+    queryClient.removeQueries({ queryKey: ["notes", props.selectedBoardId] });
+    queryClient.removeQueries({ queryKey: ["boards"] });
+    props.setSelectedBoardId("");
+  };
 
   return (
     <header className="flex items-center justify-between p-2 border-b gap-2">
       <div className="flex-1 flex gap-2 items-center">
         <Select
-          value={
-            boards.length === 0 ? "no-boards" : (selectedBoard?.title ?? "")
-          }
+          value={boards.data.length === 0 ? "no-boards" : props.selectedBoardId}
           onValueChange={(value) => {
             if (value === "create-board") {
               setShowCreateDialog(true);
               return;
             }
-            if (boards.length === 0) return;
-            const board = boards.find((b) => b.title === value);
-            if (board) {
-              setSelectedBoard(board);
-              props.setSelectedBoardId(board._id);
+            if (boards.data.length === 0) {
+              return;
             }
+            props.setSelectedBoardId(value);
           }}
         >
           <SelectTrigger className="flex-1 cursor-pointer">
@@ -87,19 +101,19 @@ const Header = (props: Props) => {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {boards.length === 0 && (
+              {boards.data.length === 0 && (
                 <SelectItem
                   value="no-boards"
                   disabled
                   className="text-muted-foreground cursor-not-allowed"
                 >
-                  No boards available
+                  No boards available - Press here to create one
                 </SelectItem>
               )}
-              {boards.map((board) => (
+              {boards.data.map((board) => (
                 <SelectItem
                   key={board._id}
-                  value={board.title}
+                  value={board._id}
                   className="cursor-pointer"
                 >
                   {board.title}
@@ -120,25 +134,37 @@ const Header = (props: Props) => {
         onOpenChange={setShowCreateDialog}
       />
       <JoinBoardDialog
-        boardId={selectedBoard?._id ?? ""}
-        boardTitle={selectedBoard?.title ?? ""}
+        boardId={getBoardById(props.selectedBoardId)?._id ?? ""}
+        boardTitle={getBoardById(props.selectedBoardId)?.title ?? ""}
         open={showInviteDialog}
         onOpenChange={setShowInviteDialog}
       />
       <Button
-        disabled={selectedBoard === null}
+        disabled={props.selectedBoardId === ""}
         onClick={() => setShowInviteDialog(true)}
         className="cursor-pointer"
         variant={"outline"}
       >
         Invite user
       </Button>
-      <Button onClick={props.newNote} className="cursor-pointer">
+      <Button
+        onClick={props.newNote}
+        className="cursor-pointer"
+        disabled={props.selectedBoardId === ""}
+      >
         New note
       </Button>
       <Button
+        disabled={props.selectedBoardId === ""}
         variant="destructive"
-        onClick={removeToken}
+        onClick={deleteBoard}
+        className="cursor-pointer"
+      >
+        Leave board
+      </Button>
+      <Button
+        variant="destructive"
+        onClick={handleLogout}
         className="cursor-pointer"
       >
         Logout

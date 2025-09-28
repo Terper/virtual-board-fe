@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider";
 import Auth from "./components/Auth";
@@ -18,6 +18,8 @@ export type NoteData = {
 function App() {
   const [selectedBoardId, setSelectedBoardId] = useState<string>("");
   const { token } = useAuth();
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setSelectedBoardId("");
@@ -42,7 +44,6 @@ function App() {
       return data.board.notes;
     },
     initialData: [],
-    staleTime: 0,
     enabled: !!selectedBoardId,
   });
 
@@ -122,6 +123,29 @@ function App() {
     },
   });
 
+  const deleteBoardMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(
+        `${import.meta.env.VITE_BOARD_API_URL}/boards/${id}/owners/leave`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error();
+      }
+      return response.json();
+    },
+    onSettled: () => {
+      queryClient.removeQueries({ queryKey: ["notes", selectedBoardId] });
+      queryClient.removeQueries({ queryKey: ["boards"] });
+      setSelectedBoardId("");
+    },
+  });
+
   const newNote = () => {
     newNoteMutation.mutate();
   };
@@ -136,7 +160,12 @@ function App() {
 
   return (
     <>
-      <Header newNote={newNote} setSelectedBoardId={setSelectedBoardId} />
+      <Header
+        newNote={newNote}
+        setSelectedBoardId={setSelectedBoardId}
+        selectedBoardId={selectedBoardId}
+        deleteBoard={deleteBoardMutation}
+      />
       <main className="p-2 h-[calc(100vh-56px)]">
         {notes.data.map((note) => (
           <Note
